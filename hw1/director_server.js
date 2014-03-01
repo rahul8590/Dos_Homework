@@ -1,3 +1,10 @@
+
+console.log("                   Welcome to Winter Olympics           ")
+console.log("                         ---------- __o");
+console.log("                       --------  _ \<,_");
+console.log("                     -------    (*)/ (*)");
+
+
 var _global_ = 0 ; 
 
 var store = (function() {
@@ -53,27 +60,35 @@ var router = new director.http.Router();
 router.get('/getinfo/:teamname', function main(teamname) {
   var ans = JSON.stringify(store.getByTeamName(teamname));
   this.res.end(ans);
-  console.log("exe main function",_global_++ , teamname);
+  console.log("exe main function", teamname);
+  _global_++ ;
 });
 
 router.get('/getscore/:eventname', function main(eventname) {
   this.res.end("connected to server");
-  console.log("exe main function",_global_++ , eventname);
+  console.log("exe main function", eventname);
+  _global_++ ;
 });
 
 router.get('/inc/:teamname/:medal', function main(teamname,medal) {
   store.incrementMedalTally(teamname,medal);  
   var ans = JSON.stringify(store.getByTeamName(teamname));
-  this.res.end("connected to server");
-  console.log("Incremented medal count for a team",_global_++);
+  this.res.end(ans);
+  console.log("Incremented medal count for a team");
+  _global_++ ;
 });
 
 var server = http.createServer(function (req, res) { 
   router.dispatch(req,res,function(err) { 
     if(err) {
       console.log(" something is screwed up " ) ;
+      _global_++ ;
     }
   });
 });
+
+setInterval(function () {
+    console.log(" number of request so far" ,_global_);
+},5000);
 
 server.listen(8080);
