@@ -30,10 +30,10 @@ var store = (function() {
         incrementMedalTally: function(TeamName,MedalType) {
           if(TeamName in byTeamName) {
             temp = byTeamName[TeamName].pop();
-            temp.MedalType++;
+            temp[MedalType]++;
             byTeamName[TeamName].push(temp);
           }
-        }
+        },
         getByGold: function(Gold) {
             return byGold[Gold-1];
         }
@@ -41,18 +41,31 @@ var store = (function() {
 })();
 
 
+store.add("gual",1,1,1);
+store.add("rome",2,2,2);
+
 var http = require('http'),
     director = require('director');
 
-function main() {
-  this.res.end("connected to server");
-  console.log("exe main function",_global_++);
-}
 
-var router = new director.http.Router({
-  '/main' : {
-    get: main
-  }
+var router = new director.http.Router();
+
+router.get('/getinfo/:teamname', function main(teamname) {
+  var ans = JSON.stringify(store.getByTeamName(teamname));
+  this.res.end(ans);
+  console.log("exe main function",_global_++ , teamname);
+});
+
+router.get('/getscore/:eventname', function main(eventname) {
+  this.res.end("connected to server");
+  console.log("exe main function",_global_++ , eventname);
+});
+
+router.get('/inc/:teamname/:medal', function main(teamname,medal) {
+  store.incrementMedalTally(teamname,medal);  
+  var ans = JSON.stringify(store.getByTeamName(teamname));
+  this.res.end("connected to server");
+  console.log("Incremented medal count for a team",_global_++);
 });
 
 var server = http.createServer(function (req, res) { 
@@ -63,4 +76,4 @@ var server = http.createServer(function (req, res) {
   });
 });
 
-  server.listen(8080);
+server.listen(8080);
