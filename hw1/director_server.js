@@ -87,8 +87,28 @@ var server = http.createServer(function (req, res) {
   });
 });
 
+
+
+var io = require('socket.io').listen(server,{ log: false });
+
+io.sockets.on('connection', function (socket) {
+    
+    setInterval(function () {
+        socket.emit('news', { hello: 'world' });
+    },2000);
+    /*socket.on('my other event', function (data) {
+            console.log(data);
+              });*/
+});
+
+
+
+
+
 setInterval(function () {
     console.log(" number of request so far" ,_global_);
 },5000);
 
 server.listen(8080);
+
+
