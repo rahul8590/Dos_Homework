@@ -72,11 +72,20 @@ router.get('/getscore/:eventname', function main(eventname) {
 
 router.get('/inc/:teamname/:medal', function main(teamname,medal) {
   store.incrementMedalTally(teamname,medal);  
+  this.req.on('data', function (chunk) {
+      console.log(chunk);
+    });
+
   var ans = JSON.stringify(store.getByTeamName(teamname));
   this.res.end(ans);
   console.log("Incremented medal count for a team");
   _global_++ ;
+
+  
+
 });
+
+
 
 var server = http.createServer(function (req, res) { 
   router.dispatch(req,res,function(err) { 
@@ -90,24 +99,29 @@ var server = http.createServer(function (req, res) {
 
 
 var io = require('socket.io').listen(server,{ log: false });
+var __a__ = 0;
 
 io.sockets.on('connection', function (socket) {
-    
+     
     setInterval(function () {
-        socket.emit('news', { hello: 'world' });
+        socket.emit('news', { eventname: __a__  });
+        __a__++;
     },2000);
     /*socket.on('my other event', function (data) {
             console.log(data);
               });*/
 });
 
-
-
-
-
 setInterval(function () {
     console.log(" number of request so far" ,_global_);
 },5000);
+
+
+process.on('SIGINT', function() {
+    console.log(" \n Caught interrupt signal. Cleaning up all the connections .. Goodbye   \n");
+    process.exit();
+});
+
 
 server.listen(8080);
 
