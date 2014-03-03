@@ -6,7 +6,21 @@
 //Cacophonix Server 
 
 console.log("Initializing Client ")
+var events = require("events");  
 var event_type = process.argv[2];
+var channel = new events.EventEmitter();
+
+
+
+
+channel.on('inc_medal',function () {
+	socket.emit("inc_medal", { teamname : "gual" , medal: "gold" });
+});
+
+channel.on('set_score',function () {
+	console.log("setting score for a given teamname ");
+});
+
 console.log("subscribing to " , event_type);
 
 var io = require('socket.io-client'),
@@ -17,8 +31,8 @@ socket = io.connect('localhost', {
 
 socket.on('connect',function () {
 	console.log("connected to director server");
-	socket.emit("update_cacophonix", { event_name : "scores"});
-});
+	channel.emit('inc_medal');
+});	
 
 socket.on('error', function () {
 	console.log("Unable to Connect to director Server");

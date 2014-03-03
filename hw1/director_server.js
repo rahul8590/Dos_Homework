@@ -70,11 +70,12 @@ router.get('/getscore/:eventname', function main(eventname) {
   _global_++ ;
 });
 
-router.get('/inc/:teamname/:medal', function main(teamname,medal) {
+/*router.get('/inc/:teamname/:medal', function main(teamname,medal) {
   store.incrementMedalTally(teamname,medal);  
   this.req.on('data', function (chunk) {
       console.log(chunk);
     });
+
 
   var ans = JSON.stringify(store.getByTeamName(teamname));
   this.res.end(ans);
@@ -85,7 +86,7 @@ router.get('/inc/:teamname/:medal', function main(teamname,medal) {
 
 });
 
-
+*/
 
 var server = http.createServer(function (req, res) { 
 
@@ -111,8 +112,10 @@ io.sockets.on('connection', function (socket) {
         __a__++;
     },2000);
     
-    socket.on('update_cacophonix', function (data) {
+    socket.on('inc_medal', function (data) {
             console.log("receiving data from cacophonix server",data);
+            store.incrementMedalTally(data.teamname,data.medal);  
+            console.log("data is updated");
     });
 });
 
