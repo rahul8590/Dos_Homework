@@ -1,8 +1,8 @@
 console.log("Initializing Client ")
+var event_type = process.argv[2];
+console.log("subscribing to " , event_type);
 
 var io = require('socket.io-client'),
-
-//socket = io.connect('http://localhost:8080');
 
 socket = io.connect('localhost', {
     port: 8080
@@ -16,7 +16,7 @@ socket.on('error', function () {
 	console.log("Unable to Connect to Main Server");
 });
 
-socket.on('news', function (data) {
+socket.on(event_type, function (data) {
         console.log(data);
         //socket.emit('my other event', { my: 'data' });
 });

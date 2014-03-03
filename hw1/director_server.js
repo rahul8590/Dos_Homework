@@ -88,7 +88,9 @@ router.get('/inc/:teamname/:medal', function main(teamname,medal) {
 
 
 var server = http.createServer(function (req, res) { 
-  router.dispatch(req,res,function(err) { 
+
+  console.log(req.url,"\n",req.headers.authorization);
+  router.dispatch(req,res,function(err) {   
     if(err) {
       console.log(" something is screwed up " ) ;
       _global_++ ;
@@ -102,23 +104,30 @@ var io = require('socket.io').listen(server,{ log: false });
 var __a__ = 0;
 
 io.sockets.on('connection', function (socket) {
-     
+    
+    console.log("Connected to Client Event Subscriber") ;
     setInterval(function () {
-        socket.emit('news', { eventname: __a__  });
+        socket.emit('event_type', { eventname: __a__  });
         __a__++;
     },2000);
-    /*socket.on('my other event', function (data) {
-            console.log(data);
-              });*/
+    
+    socket.on('update_cacophonix', function (data) {
+            console.log("receiving data from cacophonix server",data);
+    });
 });
 
-setInterval(function () {
+/*setInterval(function () {
     console.log(" number of request so far" ,_global_);
 },5000);
-
+*/
 
 process.on('SIGINT', function() {
     console.log(" \n Caught interrupt signal. Cleaning up all the connections .. Goodbye   \n");
+    console.log("                         ---------- __o");
+    console.log("                       --------  _ \<,_");
+    console.log("                     -------    (*)/ (*)");
+
+    server.close();
     process.exit();
 });
 
