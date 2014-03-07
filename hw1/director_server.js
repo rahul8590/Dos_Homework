@@ -7,7 +7,13 @@ console.log("                     -------    (*)/ (*)");
 var _global_ = 0 ; 
 
 
-// Data structure to store TeamName and the Medal Scores with it.
+/* Data structure to store TeamName and the Medal Scores with it.
+Methods :
+Add()
+getByTeamName()
+incrementMedalTally()
+*/
+
 var store = (function() {
     var byGold = [];
     var byTeamName = {};
@@ -20,7 +26,7 @@ var store = (function() {
                 bronze: Bronze,
                 silver: Silver
             };
-            if (TeamName in byTeamName) { // You could also use byTeamName.hasOwnProperty(TeamName) here
+            if (TeamName in byTeamName) { 
                 byTeamName[TeamName].pop();
                 byTeamName[TeamName].push(d);
             } else {
@@ -41,14 +47,15 @@ var store = (function() {
             temp[MedalType]++;
             byTeamName[TeamName].push(temp);
           }
-        },
-        getByGold: function(Gold) {
-            return byGold[Gold-1];
         }
     };
 })();
 
-//Datastructures to store the Event Scores for Team Rome and Gual
+/*Datastructures to store the Event Scores for Team Rome and Gual
+Methods:
+Add(Eventname,Team1_Score , Team2_Score) => Add scores for a particular event 
+getByEventName() => Get Event Scores based on event (curling,skiing)
+*/
 var score = (function() {
     var byTeamName = [];
     var byEventName = {};
@@ -60,7 +67,7 @@ var score = (function() {
                 rome: Team1,
                 gual: Team2,
             };
-            if (EventName in byEventName) { // You could also use byEventName.hasOwnProperty(EventName) here
+            if (EventName in byEventName) { 
                 byEventName[EventName].pop();
                 byEventName[EventName].push(d);
             } else {
@@ -79,13 +86,21 @@ var score = (function() {
 })();
 
 
-
 // Initializing the Teams and Then Individual Score Events 
 store.add("gual",0,0,0);
 store.add("rome",0,0,0);
 
 score.add("curling",0,0);
 score.add("skiing",0,0);
+
+
+console.log (" Initializing Teams with the following Scores ");
+console.log("gual => 0 , 0 , 0 (gold,silver,bronze");
+console.log("rome => 0 , 0 , 0 (gold,silver,bronze");
+console.log("Initializing Scores for the Following Events ") ;
+console.log("curling => rome: 0 , gual : 0 ");
+console.log("skiing => rome: 0 , gual : 0  ");
+
 
 
 
@@ -96,47 +111,48 @@ var http = require('http'),
 
 var router = new director.http.Router();
 
+
+/*Creating Router Routes (dispatch)
+/getinfo/rome
+/getinfo/gual
+*/
 router.get('/getinfo/:teamname', function main(teamname) {
   var ans = JSON.stringify(store.getByTeamName(teamname));
   this.res.end(ans);
-  //console.log("exe main function", teamname);
-  //_global_++ ;
 });
+
+
+/*Creating Router Routes (dispatch)
+/getscore/curling
+/getscore/skiing
+*/
 
 router.get('/getscore/:eventname', function main(eventname) {
   var ans = JSON.stringify(score.getByEventName(eventname));
   this.res.end(ans);
-  //console.log("exe main function", eventname);
-  //_global_++ ;
 });
 
+
 var server = http.createServer(function (req, res) { 
-  //console.log(req.url,"\n",req.headers.authorization);
   router.dispatch(req,res,function(err) {   
     if(err) {
-      console.log(" something is screwed up " ) ;
-      _global_++ ;
+      console.log(" Unwarrented Url " ) ;
+      this.res.end(" Illegal Url Calls \n");
     }
   });
 });
+
 
 var events = require("events");
 var channel = new events.EventEmitter();
 
 
 var io = require('socket.io').listen(server,{ log: false });
-var __a__ = 0;
 
 io.sockets.on('connection', function (socket) {
     
     console.log("Connected to Client Event Subscriber") ;
-    /*setInterval(function () {
-        var d = score.getByEventName('curling');
-        console.log("variable => ",d[0].eventname,d[0].rome,d[0].gual);
-        socket.emit('curling', { 'rome' : d[0].rome , 'gaul' : d[0].gual });
-    //    __a__++;
-    },2000);
-    */
+
     channel.on('curling' , function () {
         console.log("called the channel curling");
         var d = score.getByEventName('curling');
@@ -160,17 +176,11 @@ io.sockets.on('connection', function (socket) {
       console.log("New Score received from cacophonix server ", data );
       score.add(data.eventname,data.rome,data.gual);
       console.log(data);
-      //socket.emit('curling', { 'eventname': data.eventname ,'rome' : data.rome , 'raul' : data.gual });
-      //socket.emit('curling' , "blah");
       channel.emit(data.eventname);
     });
 
 });
 
-/*setInterval(function () {
-    console.log(" number of request so far" ,_global_);
-},5000);
-*/
 
 process.on('SIGINT', function() {
     console.log(" \n Caught interrupt signal. Cleaning up all the connections .. Goodbye   \n");

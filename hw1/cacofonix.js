@@ -1,9 +1,13 @@
-//update the server push notifications 
-//set_score()
-//incrementMedalTally()
-//
+/*
 
-//Cacophonix Server 
+Cacophonix Server 
+
+update the server push notifications 
+set_score()
+incrementMedalTally()
+
+*/
+
 
 
 var events = require("events");  
@@ -19,18 +23,17 @@ var ops = stdio.getopt({
 });
 
 console.log("Initializing Client ");
-//var event_type = process.argv[2];
+
+
 var channel = new events.EventEmitter();
 
 channel.on('inc_medal',function () {
 	socket.emit("inc_medal", { teamname : ops.teamname , medal: ops.medal_type });
-	//process.exit();
 });
 
 channel.on('set_score',function () {
 	console.log("setting score for a given teamname " , process.hrtime()[0]);
     socket.emit("set_score", { eventname: ops.event_name , rome : ops.score[0] , gual: ops.score[1]});
-    //process.exit();
 });
 
 channel.on ("end" , function () {
@@ -62,7 +65,6 @@ socket.on('error', function () {
 
 socket.on(ops.action_type, function (data) {
         console.log(data);
-        //socket.emit('my other event', { my: 'data' });
 });
 
 socket.on('disconnect' , function () {

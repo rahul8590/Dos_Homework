@@ -1,3 +1,15 @@
+/*
+
+Active client Subscribing to various Events
+
+USAGE: node socketio_client.js [OPTIONS] , where OPTIONS are:
+  -e, --event_type <ARG1> Name of event (curling,skiing)
+  -h, --host <ARG1> Name of the director_server (give localhost if same system) (mandatory)
+
+Author: rahulram@cs.umass.edu
+
+*/
+
 var stdio = require("stdio");
 var ops = stdio.getopt({
 	'event_type': {key: 'e', args: 1, description: 'Name of event (curling.skiing)'},
@@ -24,8 +36,7 @@ socket.on('error', function () {
 });
 
 socket.on(event_type, function (data) {
-        console.log(process.hrtime()[0] , data);
-        //socket.emit('my other event', { my: 'data' });
+        console.log("nanosecond time =>", process.hrtime()[0] , data);
 });
 
 socket.on('disconnect' , function () {
