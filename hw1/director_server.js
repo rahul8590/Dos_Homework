@@ -143,6 +143,12 @@ io.sockets.on('connection', function (socket) {
         socket.emit('curling', { 'rome' : d[0].rome , 'gaul' : d[0].gual });
     });
 
+    channel.on('skiing' , function () {
+        console.log("called the channel skiing");
+        var d = score.getByEventName('skiing');
+        socket.emit('skiing', { 'rome' : d[0].rome , 'gaul' : d[0].gual });
+    });
+
 
     socket.on('inc_medal', function (data) {
             console.log("receiving data from cacophonix server",data);
@@ -156,7 +162,7 @@ io.sockets.on('connection', function (socket) {
       console.log(data);
       //socket.emit('curling', { 'eventname': data.eventname ,'rome' : data.rome , 'raul' : data.gual });
       //socket.emit('curling' , "blah");
-      channel.emit('curling');
+      channel.emit(data.eventname);
     });
 
 });
