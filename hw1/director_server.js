@@ -56,9 +56,9 @@ var score = (function() {
     return {
         add: function(EventName, Team1, Team2) {
             var d = {
-                EventName: EventName,
-                Rome: Team1,
-                Gual: Team2,
+                eventname: EventName,
+                rome: Team1,
+                gual: Team2,
             };
             if (EventName in byEventName) { // You could also use byEventName.hasOwnProperty(EventName) here
                 byEventName[EventName].pop();
@@ -90,19 +90,6 @@ score.add("skiing",0,0);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 var http = require('http'),
     director = require('director');
 
@@ -112,33 +99,16 @@ var router = new director.http.Router();
 router.get('/getinfo/:teamname', function main(teamname) {
   var ans = JSON.stringify(store.getByTeamName(teamname));
   this.res.end(ans);
-  console.log("exe main function", teamname);
-  _global_++ ;
+  //console.log("exe main function", teamname);
+  //_global_++ ;
 });
 
 router.get('/getscore/:eventname', function main(eventname) {
-  this.res.end("connected to server");
-  console.log("exe main function", eventname);
-  _global_++ ;
-});
-
-/*router.get('/inc/:teamname/:medal', function main(teamname,medal) {
-  store.incrementMedalTally(teamname,medal);  
-  this.req.on('data', function (chunk) {
-      console.log(chunk);
-    });
-
-
-  var ans = JSON.stringify(store.getByTeamName(teamname));
+  var ans = JSON.stringify(score.getByEventName(eventname));
   this.res.end(ans);
-  console.log("Incremented medal count for a team");
-  _global_++ ;
-
-  
-
+  //console.log("exe main function", eventname);
+  //_global_++ ;
 });
-
-*/
 
 var server = http.createServer(function (req, res) { 
   //console.log(req.url,"\n",req.headers.authorization);
@@ -150,6 +120,8 @@ var server = http.createServer(function (req, res) {
   });
 });
 
+var events = require("events");
+var channel = new events.EventEmitter();
 
 
 var io = require('socket.io').listen(server,{ log: false });
@@ -158,11 +130,20 @@ var __a__ = 0;
 io.sockets.on('connection', function (socket) {
     
     console.log("Connected to Client Event Subscriber") ;
-    setInterval(function () {
-        socket.emit('event_type', { eventname: __a__  });
-        __a__++;
+    /*setInterval(function () {
+        var d = score.getByEventName('curling');
+        console.log("variable => ",d[0].eventname,d[0].rome,d[0].gual);
+        socket.emit('curling', { 'rome' : d[0].rome , 'gaul' : d[0].gual });
+    //    __a__++;
     },2000);
-    
+    */
+    channel.on('curling' , function () {
+        console.log("called the channel curling");
+        var d = score.getByEventName('curling');
+        socket.emit('curling', { 'rome' : d[0].rome , 'gaul' : d[0].gual });
+    });
+
+
     socket.on('inc_medal', function (data) {
             console.log("receiving data from cacophonix server",data);
             store.incrementMedalTally(data.teamname,data.medal);  
@@ -171,9 +152,12 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('set_score', function (data) {
       console.log("New Score received from cacophonix server ", data );
+      score.add(data.eventname,data.rome,data.gual);
+      console.log(data);
+      //socket.emit('curling', { 'eventname': data.eventname ,'rome' : data.rome , 'raul' : data.gual });
+      //socket.emit('curling' , "blah");
+      channel.emit('curling');
     });
-
-
 
 });
 
