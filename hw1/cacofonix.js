@@ -10,15 +10,13 @@ var events = require("events");
 var event_type = process.argv[2];
 var channel = new events.EventEmitter();
 
-
-
-
 channel.on('inc_medal',function () {
 	socket.emit("inc_medal", { teamname : "gual" , medal: "gold" });
 });
 
 channel.on('set_score',function () {
 	console.log("setting score for a given teamname ");
+  socket.emit("set_score", { eventname: "event_name" , rome : "score " , gual: "score"});
 });
 
 console.log("subscribing to " , event_type);

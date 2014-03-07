@@ -1,4 +1,3 @@
-
 console.log("                   Welcome to Winter Olympics           ")
 console.log("                         ---------- __o");
 console.log("                       --------  _ \<,_");
@@ -7,6 +6,8 @@ console.log("                     -------    (*)/ (*)");
 
 var _global_ = 0 ; 
 
+
+// Data structure to store TeamName and the Medal Scores with it.
 var store = (function() {
     var byGold = [];
     var byTeamName = {};
@@ -47,9 +48,60 @@ var store = (function() {
     };
 })();
 
+//Datastructures to store the Event Scores for Team Rome and Gual
+var score = (function() {
+    var byTeamName = [];
+    var byEventName = {};
 
-store.add("gual",1,1,1);
-store.add("rome",2,2,2);
+    return {
+        add: function(EventName, Team1, Team2) {
+            var d = {
+                EventName: EventName,
+                Rome: Team1,
+                Gual: Team2,
+            };
+            if (EventName in byEventName) { // You could also use byEventName.hasOwnProperty(EventName) here
+                byEventName[EventName].pop();
+                byEventName[EventName].push(d);
+            } else {
+                byEventName[EventName] = [];
+                byEventName[EventName].push(d);
+            }
+            //byTeamName[Team1-1] = d;
+        },
+        getByEventName: function(EventName) {
+            if (EventName in byEventName) {
+                return byEventName[EventName];
+            }
+            return null;
+        }
+    };
+})();
+
+
+
+// Initializing the Teams and Then Individual Score Events 
+store.add("gual",0,0,0);
+store.add("rome",0,0,0);
+
+score.add("curling",0,0);
+score.add("skiing",0,0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 var http = require('http'),
     director = require('director');
@@ -89,8 +141,7 @@ router.get('/getscore/:eventname', function main(eventname) {
 */
 
 var server = http.createServer(function (req, res) { 
-
-  console.log(req.url,"\n",req.headers.authorization);
+  //console.log(req.url,"\n",req.headers.authorization);
   router.dispatch(req,res,function(err) {   
     if(err) {
       console.log(" something is screwed up " ) ;
@@ -117,6 +168,13 @@ io.sockets.on('connection', function (socket) {
             store.incrementMedalTally(data.teamname,data.medal);  
             console.log("data is updated");
     });
+
+    socket.on('set_score', function (data) {
+      console.log("New Score received from cacophonix server ", data );
+    });
+
+
+
 });
 
 /*setInterval(function () {
