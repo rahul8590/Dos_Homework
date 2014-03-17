@@ -6,6 +6,7 @@ update the server push notifications
 set_score()
 incrementMedalTally()
 
+Author: rahulram@cs.umass.edu
 */
 
 
