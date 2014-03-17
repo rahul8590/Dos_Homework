@@ -1,23 +1,3 @@
-var ntp  = {}
-    , offsets = [] ;
-    
-
-  /*var sync = function () {
-    socket.emit('ntp:client_sync', { t0 : Date.now() });
-  };
-
-
- var onSync = function (data) {
-
-    var diff = Date.now() - data.t1 + ((Date.now() - data.t0)/2);
-
-    offsets.unshift(diff);
-
-    if (offsets.length > 10)
-      offsets.pop();
-  };
-*/
-
 var http = require('http'),
     director = require('director');
 
