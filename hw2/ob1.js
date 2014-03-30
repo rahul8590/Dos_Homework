@@ -24,8 +24,36 @@ function getrandom() {
 
 var io = require('socket.io').listen(server,{ log: false });
 
+
+/*
+Channel 1 : Coordinate 
+            - Fetch all the nodes count to synch with 
+            - Have the random id sent to to Ob1 master 
+
+Ob1 decides who is the master 
+
+Channel 2: Coordinate_Confirm 
+            - Broadcast to all the listeners on who is the master
+
+Repeat this cycle every 5 seconds 
+*/
+
+
 io.sockets.on('connection', function (socket) {
     
+
+    socket.on('coordinate' , function (data) {
+       var a = getrandom();
+       console.log(" ob1: ", a);
+       if (data.pid < a) {
+        console.log(" Ob1: I am the master" , a );
+       }
+       else {
+        socket.emit('coordinate' , {ob1: 'blah'});
+       }
+    });
+
+
     socket.on('ntp:client_sync', function (data) {
     	console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
     	socket.emit('ntp:server_sync', { t1     : Date.now(),

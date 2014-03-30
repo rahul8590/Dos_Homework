@@ -1,4 +1,11 @@
 var offsets = [] ;
+
+function getrandom() {
+  var max = 100000 ;
+  var min = 0 
+  return Math.random() * (max - min) + min ;
+}
+
     
 var sync = function () {
     socket.emit('ntp:client_sync', { t0 : Date.now() });
@@ -25,8 +32,15 @@ socket = io.connect("localhost", {
 
 socket.on('connect',function () {
 	socket.on('ntp:server_sync', onSync);
-	setInterval(sync,1000);
+  var a = getrandom();
+  console.log(" my pid is ",a);
+  socket.emit('coordinate', {pid: a });
+	//setInterval(sync,1000);
 });	
+
+socket.on('coordinate' , function (data) {
+  console.log("ob2 is the master ");
+});
 
 socket.on('error', function () {
 	console.log("Unable to Connect to director Server");
