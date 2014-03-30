@@ -15,6 +15,13 @@ var server = http.createServer(function (req, res) {
 });
 
 
+
+function getrandom() {
+  var max = 100000 ;
+  var min = 0 
+  return Math.random() * (max - min) + min ;
+}
+
 var io = require('socket.io').listen(server,{ log: false });
 
 io.sockets.on('connection', function (socket) {

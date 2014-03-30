@@ -1,5 +1,4 @@
-var ntp  = {}
-    , offsets = [] ;
+var offsets = [] ;
     
 var sync = function () {
     socket.emit('ntp:client_sync', { t0 : Date.now() });
@@ -32,4 +31,5 @@ socket.on('connect',function () {
 socket.on('error', function () {
 	console.log("Unable to Connect to director Server");
 });
+
 
