@@ -24,6 +24,11 @@ var onSync = function (data) {
   	console.log("Order no ",data.ord,"The offset is ",offsets[0] ,"time in server was = ",data.t1 , "time in the slave = ", Date.now() );
   };
 
+var pcoordinate = function () {
+  var a = getrandom();
+  console.log(" my pid is ",a);
+  socket.emit('coordinate', {'ob2': a });
+}
 
 var io = require('socket.io-client'),
 socket = io.connect("localhost", {
@@ -32,14 +37,22 @@ socket = io.connect("localhost", {
 
 socket.on('connect',function () {
 	socket.on('ntp:server_sync', onSync);
-  var a = getrandom();
-  console.log(" my pid is ",a);
-  socket.emit('coordinate', {pid: a });
+  
 	//setInterval(sync,1000);
+  setInterval(pcoordinate,1000);
+
 });	
 
 socket.on('coordinate' , function (data) {
-  console.log("ob2 is the master ");
+  console.log("received some pid", data);
+  var a = getrandom();
+  console.log("my current pid is ", a);
+  if (a > data.ob1) {
+    console.log("ob2 is the master ");  
+  }
+  else {
+    console.log("ob1 is master");
+  }
 });
 
 socket.on('error', function () {

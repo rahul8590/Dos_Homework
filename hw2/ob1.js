@@ -45,14 +45,19 @@ io.sockets.on('connection', function (socket) {
     socket.on('coordinate' , function (data) {
        var a = getrandom();
        console.log(" ob1: ", a);
-       if (data.pid < a) {
+       if (data.ob2 < a) {
         console.log(" Ob1: I am the master" , a );
        }
        else {
-        socket.emit('coordinate' , {ob1: 'blah'});
+        setInterval(function () {
+          socket.emit('coordinate' , {'ob1': getrandom()}) 
+        }, 1000);
        }
     });
 
+    socket.on('master', function (data) {
+      console.log(data, "is the master for now");
+    })
 
     socket.on('ntp:client_sync', function (data) {
     	console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
