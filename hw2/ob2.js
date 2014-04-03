@@ -48,6 +48,7 @@ server.listen(8591);
 
 
 
+
 var offsets = [] ;
 
 
@@ -86,8 +87,32 @@ var pcoordinate = function () {
   socket.emit('coordinate', {'ob2': a });
 }
 
-var io = require('socket.io-client'),
-socket = io.connect("localhost", {
+
+
+
+
+//Adding server functioality when this instance becomes the time_server
+var ios = require('socket.io').listen(server,{ log: false });
+
+ios.sockets.on('connection', function (socket) {
+  /*some code */
+  socket.on('ntp:client_sync', function (data) {
+      console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
+      socket.emit('ntp:server_sync', { t1     : Date.now(),
+                                     t0     : data.t0 ,
+                                     ord: _global_ });
+    
+    });
+});
+
+
+
+
+
+// 8591 Server is acting as a client in order to sync with 8590 server
+
+var ioc = require('socket.io-client'),
+socket = ioc.connect("localhost", {
     port: 8590
 });
 
@@ -120,13 +145,6 @@ socket.on('master',function (data) {
 });
 
 
-socket.on('ntp:client_sync', function (data) {
-      console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
-      socket.emit('ntp:server_sync', { t1     : Date.now(),
-                                     t0     : data.t0 ,
-                                     ord: _global_ });
-    
-    });
 
 
 socket.on('error', function () {

@@ -41,7 +41,7 @@ router.get('/getscore/:eventname', function main(eventname) {
 
 //Functions to Synchonise Clock Depending on who is the master
 var sync = function () {
-    socket.emit('ntp:client_sync', { t0 : Date.now() });
+    csocket.emit('ntp:client_sync', { t0 : Date.now() });
 };
 
 var onSync = function (data) {
@@ -75,6 +75,29 @@ function cmp(a,b,c) {
  if (b > a && b > c) return  "ob2" ;
  else return "ob3" ;
 }
+
+
+
+
+
+// 8590 Server is acting as a client in order to sync with 8591 server
+var ioc = require('socket.io-client'),
+csocket = ioc.connect("localhost", {
+    port: 8591
+});
+
+csocket.on('connect',function () {
+  socket.on('ntp:server_sync', onSync);
+  setInterval(sync,1000);
+}); 
+
+
+
+
+
+
+
+
 
 
 
