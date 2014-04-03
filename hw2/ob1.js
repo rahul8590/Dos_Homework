@@ -4,6 +4,10 @@ var http = require('http'),
 
 var _global_ = 0;
 
+var events = require("events");
+var channel = new events.EventEmitter();
+
+
 //Actual Server Code to handle URl Request
 var router = new director.http.Router();
 var server = http.createServer(function (req, res) { 
@@ -76,7 +80,7 @@ function cmp(a,b,c) {
  else return "ob3" ;
 }
 
-
+var offsets = [] ;
 
 
 
@@ -87,12 +91,24 @@ csocket = ioc.connect("localhost", {
 });
 
 csocket.on('connect',function () {
-  socket.on('ntp:server_sync', onSync);
-  setInterval(sync,1000);
-}); 
+    console.log("connected to ob2 time server");
+    //channel.emit('start_time_client');
+});
+
+channel.on('start_time_client', function () {
+    csocket.on('ntp:server_sync', onSync);
+    csocket.emit('ntp:client_sync', { t0 : Date.now() });
+    //sync();
+    //setInterval(sync,1000); 
+    
+});
 
 
-
+csocket.on('error' , function(err) {
+  console.log("unable to connect to ob2 time server");
+  csocket.socket.reconnect(); 
+  channel.emit('start_time_client');
+});
 
 
 
@@ -120,6 +136,7 @@ Repeat this cycle every 5 seconds
 
 io.sockets.on('connection', function (socket) {
     
+    var funcid ;
 
     socket.on('coordinate' , function (data) {
        var a = getrandom();
@@ -129,31 +146,48 @@ io.sockets.on('connection', function (socket) {
        console.log(" The master is ",m);
        socket.emit('master',m);
 
-       setInterval(function () {
+    /*funcid =   setInterval(function () {
           a = getrandom();
-          console.log("after 2 seconds this is my pid", a);
+          console.log("after 5 seconds this is my pid", a);
           socket.emit('coordinate' , {'ob1': a}) 
-        }, 10000);
-       
+        }, 5000);
+      */
+
+
     });
 
     socket.on('master', function (data) {
-      var funcid ;
+      
       console.log(data, "is the master for now");
       if(data != "ob1") {
-        funcid = setInterval(sync,1000);
+        //sync();
+        console.log("entering data!=ob1 constraints ");
+        channel.emit('start_timer_client');
+
       }
       else {
         console.log("stopping client sync, since I am master now");
-        clearInterval(funcid);
+        a = getrandom();
+        socket.emit('coordinate' , {'ob1': a}) ;
       }
     });
+
+
+    socket.on('sync_with_master' , function () {
+        channel.emit('start_timer_client');
+    });
+
+
+
+    console.log("time server connected and listening");
 
     socket.on('ntp:client_sync', function (data) {
     	console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
     	socket.emit('ntp:server_sync', { t1     : Date.now(),
                                      t0     : data.t0 ,
                                      ord: _global_ });
+      a = getrandom();
+      socket.emit('coordinate' , {'ob1': a}) ;
   	
   	});
 
