@@ -1,28 +1,34 @@
 var offsets = [] ;
 
+
+function cmp(a,b,c) {
+ if (!a) { a = -1 ; }
+ if (!b) { b = -1 ; }
+ if (!c) { c = -1 ; }
+
+ if (a > b && a > c ) return "ob1" ;
+ if (b > a && b > c) return  "ob2" ;
+ else return "ob3" ;
+}
+
 function getrandom() {
   var max = 100000 ;
   var min = 0 
   return Math.random() * (max - min) + min ;
 }
 
-    
 var sync = function () {
     socket.emit('ntp:client_sync', { t0 : Date.now() });
-  };
-
+};
 
 var onSync = function (data) {
 
     var diff = Date.now() - data.t1 + ((Date.now() - data.t0)/2);
-
     offsets.unshift(diff);
-
     if (offsets.length > 10)
       offsets.pop();
-
   	console.log("Order no ",data.ord,"The offset is ",offsets[0] ,"time in server was = ",data.t1 , "time in the slave = ", Date.now() );
-  };
+};
 
 var pcoordinate = function () {
   var a = getrandom();
@@ -34,6 +40,8 @@ var io = require('socket.io-client'),
 socket = io.connect("localhost", {
     port: 8590
 });
+
+setInterval(pcoordinate,1000);
 
 socket.on('connect',function () {
 	socket.on('ntp:server_sync', onSync);
@@ -55,8 +63,29 @@ socket.on('coordinate' , function (data) {
   }
 });
 
+socket.on('master',function (data) {
+   var funcid ;
+   if(data != "ob2") {
+    funcid = setInterval(sync,1000);
+   }
+   else {
+    console.log("stopping client sync, since I am master now");
+    clearInterval(funcid);
+   }
+});
+
+
+socket.on('ntp:client_sync', function (data) {
+      console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
+      socket.emit('ntp:server_sync', { t1     : Date.now(),
+                                     t0     : data.t0 ,
+                                     ord: _global_ });
+    
+    });
+
+
 socket.on('error', function () {
-	console.log("Unable to Connect to director Server");
+	console.log("Unable to Connect to Front End Server");
 });
 
 
