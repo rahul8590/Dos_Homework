@@ -41,20 +41,20 @@ socket = io.connect("localhost", {
     port: 8590
 });
 
-setInterval(pcoordinate,1000);
+setInterval(pcoordinate,10000);
 
 socket.on('connect',function () {
 	socket.on('ntp:server_sync', onSync);
   
 	//setInterval(sync,1000);
-  setInterval(pcoordinate,1000);
+  setInterval(pcoordinate,2000);
 
 });	
 
 socket.on('coordinate' , function (data) {
   console.log("received some pid", data);
   var a = getrandom();
-  console.log("my current pid is ", a);
+  console.log("my current pid is ", a , "data.ob1 is ", data.ob1);
   if (a > data.ob1) {
     console.log("ob2 is the master ");  
   }
@@ -66,7 +66,8 @@ socket.on('coordinate' , function (data) {
 socket.on('master',function (data) {
    var funcid ;
    if(data != "ob2") {
-    funcid = setInterval(sync,1000);
+    console.log("entering data!=ob2 constraints ");
+    funcid = setInterval(sync,2000);
    }
    else {
     console.log("stopping client sync, since I am master now");

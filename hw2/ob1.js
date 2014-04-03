@@ -76,7 +76,8 @@ io.sockets.on('connection', function (socket) {
     socket.on('coordinate' , function (data) {
        var a = getrandom();
        console.log(" ob1: ", a);
-       var m = cmp(data.ob1,data.ob2,data.ob3);
+       console.log("ob2: ", data.ob2);  
+       var m = cmp(a,data.ob2,data.ob3);
        console.log(" The master is ",m);
        socket.emit('master',m);
 
@@ -84,7 +85,7 @@ io.sockets.on('connection', function (socket) {
           a = getrandom();
           console.log("after 2 seconds this is my pid", a);
           socket.emit('coordinate' , {'ob1': a}) 
-        }, 5000);
+        }, 10000);
        
     });
 
