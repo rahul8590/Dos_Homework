@@ -1,5 +1,6 @@
 var http = require('http'),
-    director = require('director');
+    director = require('director'),
+    request = require('request');
 
 var _global_ = 0;
 
@@ -7,12 +8,36 @@ var _global_ = 0;
 var router = new director.http.Router();
 var server = http.createServer(function (req, res) { 
   router.dispatch(req,res,function(err) {   
-    if(err	) {
+    if(err) {
       console.log(" Unwarrented Url " ) ;
+      console.log(req.url);
       this.res.end(" Illegal Url Calls \n");
     }
   });
 });
+
+/*Creating Router Routes (dispatch)
+/getinfo/rome
+/getinfo/gual
+*/
+router.get('/getinfo/:teamname', function main(teamname) {
+  var ans = request.get("http://localhost:8080/getinfo/"+teamname).pipe(this.res);
+});
+
+
+/*Creating Router Routes (dispatch)
+/getscore/curling
+/getscore/skiing
+*/
+
+router.get('/getscore/:eventname', function main(eventname) {
+  var ans = request.get("http://localhost:8080/getscore/"+eventname).pipe(this.res);
+});
+
+
+
+
+
 
 //Functions to Synchonise Clock Depending on who is the master
 var sync = function () {

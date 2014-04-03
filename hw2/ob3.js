@@ -1,4 +1,4 @@
-console.log("                   Welcome to Winter Olympics           ")
+console.log("                   Welcome to Summer Olympics           ")
 console.log("                         ---------- __o");
 console.log("                       --------  _ \<,_");
 console.log("                     -------    (*)/ (*)");
