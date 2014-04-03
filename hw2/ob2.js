@@ -41,26 +41,20 @@ socket = io.connect("localhost", {
     port: 8590
 });
 
-setInterval(pcoordinate,10000);
 
 socket.on('connect',function () {
-	socket.on('ntp:server_sync', onSync);
-  
 	//setInterval(sync,1000);
-  setInterval(pcoordinate,2000);
-
+  setInterval(pcoordinate,10000);
 });	
+
+socket.on('ntp:server_sync', onSync);
 
 socket.on('coordinate' , function (data) {
   console.log("received some pid", data);
   var a = getrandom();
   console.log("my current pid is ", a , "data.ob1 is ", data.ob1);
-  if (a > data.ob1) {
-    console.log("ob2 is the master ");  
-  }
-  else {
-    console.log("ob1 is master");
-  }
+  var m = cmp(data.ob1,a,data.ob3);
+  console.log(m,"is the master");  
 });
 
 socket.on('master',function (data) {
