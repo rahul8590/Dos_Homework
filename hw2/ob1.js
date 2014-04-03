@@ -162,7 +162,7 @@ io.sockets.on('connection', function (socket) {
       if(data != "ob1") {
         //sync();
         console.log("entering data!=ob1 constraints ");
-        channel.emit('start_timer_client');
+        channel.emit('start_time_client');
 
       }
       else {
@@ -174,7 +174,8 @@ io.sockets.on('connection', function (socket) {
 
 
     socket.on('sync_with_master' , function () {
-        channel.emit('start_timer_client');
+        console.log("synch with master has been called in ob1.js");
+        channel.emit('start_time_client');
     });
 
 

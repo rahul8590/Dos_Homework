@@ -135,7 +135,11 @@ channel.on('start_time_client', function () {
     csocket.emit('ntp:client_sync', { t0 : Date.now() });
 });
 
-
+csocket.on('error' , function(err) {
+  console.log("unable to connect to ob1 time server");
+  csocket.socket.reconnect(); 
+  channel.emit('start_time_client');
+});
 
 
 
