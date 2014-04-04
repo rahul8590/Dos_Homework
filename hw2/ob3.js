@@ -103,7 +103,7 @@ console.log("rome => 0 , 0 , 0 (gold,silver,bronze");
 console.log("Initializing Scores for the Following Events ") ;
 console.log("curling => rome: 0 , gual : 0 ");
 console.log("skiing => rome: 0 , gual : 0  ");
-
+console.log("Initializing request counter to be 0");
 
 
 
@@ -116,6 +116,7 @@ var router = new director.http.Router();
 
 var offsets = [] ;
 GLOBAL._timestamp_ ;
+var req_counter = 0;
 
 
 /*Creating Router Routes (dispatch)
@@ -124,7 +125,8 @@ GLOBAL._timestamp_ ;
 */
 router.get('/getinfo/:teamname', function main(teamname) {
   var ans = store.getByTeamName(teamname);
-  this.res.end(JSON.stringify(ans));
+  req_counter++ ;
+  this.res.end(JSON.stringify(ans) +'req_counter =' +req_counter);
 });
 
 
@@ -135,7 +137,8 @@ router.get('/getinfo/:teamname', function main(teamname) {
 
 router.get('/getscore/:eventname', function main(eventname) {
   var ans = score.getByEventName(eventname);
-  this.res.end(JSON.stringify(ans));
+  req_counter++ ;
+  this.res.end(JSON.stringify(ans) +'req_counter =' +req_counter);
 });
 
 
@@ -364,8 +367,32 @@ io.sockets.on('connection', function (socket) {
 });
 
 
+function raffle_winner() {
+  if (req_counter <= 100)  {
+    console.log("Prize 1: Goes to Request 100");
+    console.log("No Prize 2 yet. Since request count is lesser than 100");
+  }
+
+  if(req_counter <= 200) {
+    console.log("Prize 1: Goes to Request 100");
+    console.log("Prize 2: Goes to Request 200");
+  }
+
+  else {
+    var max = Math.floor(req_counter / 10) ;
+    var random = Math.floor(Math.random() * (max - 0) + 0) ;
+    console.log("Prize 1: Goes to Request ",random * 10);
+    random = Math.floor(Math.random() * (max - 0) + 0) ;
+    console.log("Prize 2: Goes to Request ",random * 10);
+  }
+}
+
+
 process.on('SIGINT', function() {
     console.log(" \n Caught interrupt signal. Cleaning up all the connections .. Goodbye   \n");
+
+    raffle_winner();
+    
     console.log("                         ---------- __o");
     console.log("                       --------  _ \<,_");
     console.log("                     -------    (*)/ (*)");
