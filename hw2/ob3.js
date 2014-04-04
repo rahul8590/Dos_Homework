@@ -369,13 +369,13 @@ io.sockets.on('connection', function (socket) {
 
 function raffle_winner() {
   if (req_counter <= 100)  {
-    console.log("Prize 1: Goes to Request 100");
+    console.log("Prize 1: Goes to Request",req_counter);
     console.log("No Prize 2 yet. Since request count is lesser than 100");
   }
 
   if(req_counter <= 200) {
     console.log("Prize 1: Goes to Request 100");
-    console.log("Prize 2: Goes to Request 200");
+    console.log("Prize 2: Goes to Request",req_counter);
   }
 
   else {
@@ -385,6 +385,7 @@ function raffle_winner() {
     random = Math.floor(Math.random() * (max - 0) + 0) ;
     console.log("Prize 2: Goes to Request ",random * 10);
   }
+  console.log("total no of request combined" , req_counter);
 }
 
 
