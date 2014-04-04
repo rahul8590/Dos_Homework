@@ -1,3 +1,15 @@
+var stdio = require("stdio");
+var ops = stdio.getopt({
+  'rserver': {key: 'rserver', args: 1, description: 'Name of action (inc_medal,set_score)'},
+  'rport': {key: 'rport', args: 1, description: 'Name of event'},
+  'host': {key: 'host', args: 1, description: 'In case of multi-node deployment'},
+  'ob3' : {key: 'ob3', args: 1, description: 'full domain name of ob3 server'}
+});
+
+ops.ob3 = typeof ops.ob3 !== 'undefined' ? ops.ob3 : 'localhost';
+
+
+
 var http = require('http'),
     director = require('director'),
     request = require('request');
@@ -26,7 +38,8 @@ var server = http.createServer(function (req, res) {
 */
 router.get('/getinfo/:teamname', function main(teamname) {
   fecount++;
-  var ans = request.get("http://localhost:8080/getinfo/"+teamname).pipe(this.res);
+  console.log("into get request");
+  var ans = request.get("http://"+ops.ob3+":8080/getinfo/"+teamname).pipe(this.res);
 });
 
 
@@ -34,10 +47,9 @@ router.get('/getinfo/:teamname', function main(teamname) {
 /getscore/curling
 /getscore/skiing
 */
-
 router.get('/getscore/:eventname', function main(eventname) {
   fecount++;
-  var ans = request.get("http://localhost:8080/getscore/"+eventname).pipe(this.res);
+  var ans = request.get("http://"+ops.ob3+":8080/getscore/"+eventname).pipe(this.res);
 });
 
 
@@ -139,11 +151,11 @@ ipc.on('message', function(data) {
       },1000);         
     });
 
-    tsocket.on('message',function (msg) {
+    /*tsocket.on('message',function (msg) {
         tsocket.on('ntp:server_sync', onSync);
         tsocket.emit('ntp:client_sync', { t0 : Date.now() }); // We can add intervals later.
 
-    });
+    });*/
 
     tsocket.on('error',function() {
       console.log("reconnect error => just disconnecting");
@@ -191,7 +203,7 @@ ios.sockets.on('connection', function (socket) {
 
     socket.on('message', function (data){
       console.log("message error in the main server");
-      socket.socket.reconnect();
+      socket.disconnect();
     });
   /*socket.on('error',function() {
       console.log("unable to connect for some reason, retrying");
@@ -208,91 +220,3 @@ process.on('SIGINT', function() {
   process.exit();
 });
 
-
-
-
-/* -- This chunk of Server Events seems useless too ---- 
-
-
-// Master Bully Algorithm (ob3) is the first assumed master
-//Connecting to ob3 backend 
-var iob = require('socket.io-client'),
-bsocket = iob.connect("localhost", {
-    port: 8080
-});
-
-bsocket.on('connect',function () {
-    console.log("connected to ob3 time server");
-    var a = getrandom();
-    bsocket.emit('coordinate', {ob1 : a} );
-});
-
-
-
-socket.on('coordinate' , function (data) {
-       var a = getrandom();
-       console.log(" ob1: ", a);
-       console.log("ob2: ", data.ob2);  
-       var m = cmp(a,data.ob2,data.ob3);
-       console.log(" The master is ",m);
-       socket.emit('master',m);
-    });
-
-    socket.on('master', function (data) {
-        console.log(data, "is the master for now");
-        if(data != "ob1") {
-        //sync();
-        console.log("entering data!=ob1 constraints ");
-        channel.emit('start_time_client');
-        }
-      else {
-        console.log("stopping client sync, since I am master now");
-        a = getrandom();
-        socket.emit('coordinate' , {'ob1': a}) ;
-      }
-    });
-
-
-    socket.on('sync_with_master' , function () {
-        console.log("synch with master has been called in ob1.js");
-        channel.emit('start_time_client');
-    });
-
-
-
-*/
-
-
-
-
-/*  -- Currently This code is not needed anymore.
-
-// 8590 Server is acting as a client in order to sync with 8591 server
-var ioc = require('socket.io-client'),
-csocket = ioc.connect("localhost", {
-    port: 85910
-});
-
-csocket.on('connect',function () {
-    console.log("connected to ob2 time server");
-    //channel.emit('start_time_client');
-});
-
-channel.on('start_time_client', function () {
-    csocket.on('ntp:server_sync', onSync);
-    csocket.emit('ntp:client_sync', { t0 : Date.now() });
-    //sync();
-    //setInterval(sync,1000); 
-    
-});
-
-
-csocket.on('error' , function(err) {
-  console.log("unable to connect to ob2 time server");
-  csocket.socket.reconnect(); 
-  channel.emit('start_time_client');
-});
-
-
-
-*/

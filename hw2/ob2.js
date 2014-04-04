@@ -1,3 +1,19 @@
+
+var stdio = require("stdio");
+var ops = stdio.getopt({
+  'rserver': {key: 'rserver', args: 1, description: 'Name of action (inc_medal,set_score)'},
+  'rport': {key: 'rport', args: 1, description: 'Name of event'},
+  'host': {key: 'host', args: 1, description: 'In case of multi-node deployment'},
+  'ob3' : {key: 'ob3', args: 1, description: 'full domain name of ob3 server'}
+});
+
+console.log(ops.ob3);
+ops.ob3 = typeof ops.ob3 !== 'undefined' ? ops.ob3 : 'localhost';
+
+
+
+
+
 var http = require('http'),
     director = require('director'),
     request = require('request');
@@ -42,20 +58,6 @@ router.get('/getscore/:eventname', function main(eventname) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var offsets = [] ;
 
 
@@ -75,10 +77,6 @@ function getrandom() {
   return Math.random() * (max - min) + min ;
 }
 
-var sync = function () {
-    csocket.emit('ntp:client_sync', { t0 : Date.now() });
-};
-
 var onSync = function (data) {  
 
     var diff = Date.now() - data.t1 + ((Date.now() - data.t0)/2);
@@ -88,12 +86,6 @@ var onSync = function (data) {
   	console.log("Order no ",data.ord,"The offset is ",offsets[0] ,"time in server was = ",data.t1 , "time in the slave = ", Date.now() );
 };
 
-/*var pcoordinate = function () {
-  var a = getrandom();
-  console.log(" my pid is ",a);
-  csocket.emit('coordinate', {'ob2': a });
-}
-*/
 
 
 
@@ -120,15 +112,13 @@ ios.sockets.on('connection', function (socket) {
 
     socket.on('message', function (data){
       console.log("message error in the main server");
-      socket.socket.reconnect();
+      socket.disconnect();
     });
   /*socket.on('error',function() {
       console.log("unable to connect for some reason, retrying");
       socket.socket.reconnect();
     });*/
 });
-
-
 
 
 
@@ -144,23 +134,21 @@ var ipc = new Ipc(serverId);
 
 // Mark the process to be online in the cluster
 ipc.markProcessOnline( function() {
-  // Now that we are online we will run for president
     ipc.runForPresident();
 });
 
-// 'won' event is emited if we win (daaah) the elections
+// 'won' event is emited if we win the elections
 ipc.on('won', function() {
   console.log("I am the Master Now . . . \m/ ");
   ipc.sendMessageToAll({servername:'ob2', 'port': 8591});
 });
 
-// 'lost' ... Well you get it
+// 'lost the election'
 ipc.on('lost', function() {
   console.log("I've lost the Master Elections :( ");
 });
 
-// 'dead' event is emited when a dead node has been detected. The IPC library
-// is responsible for cleaning up the cluster while you clean up your application
+// 'dead' event is emited when a dead node has been detected. 
 ipc.on('dead', function( data ) {
   console.log("A Server has died, may it RIP ", data);
 });
@@ -228,63 +216,3 @@ process.on('SIGINT', function() {
   process.exit();
 });
 
-/*  ----- Currently This code is not needed 
-
-// 8591 Server is acting as a client in order to sync with 8590 server
-
-var ioc = require('socket.io-client'),
-csocket = ioc.connect("localhost", {
-    port: 85900
-});
-
-
-csocket.on('connect',function () {
-  console.log("connected to ob1 time server");
-  csocket.on('ntp:server_sync', onSync);
-  pcoordinate();
-}); 
-
-channel.on('start_time_client', function () {
-    //csocket.on('ntp:server_sync', onSync);
-    csocket.emit('ntp:client_sync', { t0 : Date.now() });
-});
-
-csocket.on('error' , function(err) {
-  console.log("unable to connect to ob1 time server");
-  csocket.socket.reconnect(); 
-  channel.emit('start_time_client');
-});
-
-
-
-
-csocket.on('coordinate' , function (data) {
-  console.log("received some pid", data);
-  var a = getrandom();
-  console.log("my current pid is ", a , "data.ob1 is ", data.ob1);
-  var m = cmp(data.ob1,a,data.ob3);
-  console.log(m,"is the master");  
-  csocket.emit('master',m);
-});
-
-csocket.on('master',function (data) {
-   var funcid ;
-   if(data != "ob2") {
-    console.log("entering data!=ob2 constraints ");
-    sync();
-   }
-   else {
-    console.log("stopping client sync, since I am master now");
-    csocket.emit('sync_with_master');
-    //clearInterval(funcid);
-    //channel.emit('start_time_client');
-   }
-});
-
-
-csocket.on('error', function () {
-  console.log("Unable to Connect to Front End Server");
-  csocket.socket.reconnect();
-});
-
-*/

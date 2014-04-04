@@ -4,6 +4,36 @@ console.log("                       --------  _ \<,_");
 console.log("                     -------    (*)/ (*)");
 
 
+
+var stdio = require("stdio");
+var ops = stdio.getopt({
+  'rserver': {key: 'rserver', args: 1, description: 'Name of action (inc_medal,set_score)'},
+  'rport': {key: 'rport', args: 1, description: 'Name of event'},
+  'domain': {key: 'domain', args: 1, description: 'In case of multi-node deployment'}
+    
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var _global_ = 0 ; 
 
 
@@ -187,6 +217,7 @@ console.log("My server id is",serverId);
 var ipc = new Ipc(serverId);
 
 
+
 // Mark the process to be online in the cluster
 ipc.markProcessOnline( function() {
   // Now that we are online we will run for president
@@ -268,34 +299,6 @@ ipc.on('message', function(data) {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var events = require("events");
 var channel = new events.EventEmitter();
 
@@ -351,14 +354,20 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('message', function (data){
       console.log("message error in the main server");
-      socket.socket.reconnect();
+      socket.disconnect();
     });
 
-    /*socket.on('disconnect', function (data){
+    socket.on('disconnect', function (data){
       console.log("reconnecint error in the main server");
       socket.disconnect();
     });
 
+
+    /*socket.on('connect_error', function (data){
+      console.log("reconnecint error in the main server");
+      socket.socket.reconnect();
+    });
+    
     socket.on('reconnect_error', function (data){
       console.log("reconnecint error in the main server");
       socket.disconnect();
@@ -373,7 +382,7 @@ function raffle_winner() {
     console.log("No Prize 2 yet. Since request count is lesser than 100");
   }
 
-  if(req_counter <= 200) {
+  else if(req_counter <= 200 && req_counter > 100) {
     console.log("Prize 1: Goes to Request 100");
     console.log("Prize 2: Goes to Request",req_counter);
   }
