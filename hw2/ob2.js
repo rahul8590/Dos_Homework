@@ -180,9 +180,12 @@ ipc.on('message', function(data) {
     },{'force new connection' : true });
 
     tsocket.on('connect',function () {
-        tsocket.on('ntp:server_sync', onSync);
-        tsocket.emit('ntp:client_sync', { t0 : Date.now() }); // We can add intervals later.
-
+      setInterval(function(){   
+        if(!tsocket.disconnected){
+          tsocket.on('ntp:server_sync', onSync);
+          tsocket.emit('ntp:client_sync', { t0 : Date.now() }); // We can add intervals later.
+        }      
+      },1000);         
     });
 
     tsocket.on('message',function (msg) {

@@ -344,7 +344,7 @@ io.sockets.on('connection', function (socket) {
       socket.socket.reconnect();
     });
 
-    socket.on('disconnect', function (data){
+    /*socket.on('disconnect', function (data){
       console.log("reconnecint error in the main server");
       socket.disconnect();
     });
@@ -352,7 +352,7 @@ io.sockets.on('connection', function (socket) {
     socket.on('reconnect_error', function (data){
       console.log("reconnecint error in the main server");
       socket.disconnect();
-    });
+    });*/
 
 });
 
