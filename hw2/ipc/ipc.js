@@ -38,7 +38,10 @@ var Defaults = {
   electionInterval : 1000
 };
 
-var Ipc = function( serverId, options ) {
+var rport = 6379 ;
+var rsever = 'localhost';
+
+var Ipc = function( serverId,rport,rserver,options ) {
   var self = this;
 
   events.EventEmitter.call(this);
@@ -55,14 +58,14 @@ var Ipc = function( serverId, options ) {
    *
    * @var redis
    */
-  this._redis = redis.createClient();
+  this._redis = redis.createClient(6379,'localhost');
 
   /**
    * The redis client for the IPC
    *
    * @var redis
    */
-  this._subscriber = redis.createClient();
+  this._subscriber = redis.createClient(6379,'localhost');
 
   /**
    * The server id of this server process

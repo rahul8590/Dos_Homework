@@ -7,6 +7,7 @@ var _global_ = 0;
 
 var events = require("events");
 var channel = new events.EventEmitter();
+var fecount = 0;
 
 //Actual Server Code to handle URl Request
 var router = new director.http.Router();
@@ -25,6 +26,7 @@ var server = http.createServer(function (req, res) {
 /getinfo/gual
 */
 router.get('/getinfo/:teamname', function main(teamname) {
+  fecount++;
   var ans = request.get("http://localhost:8080/getinfo/"+teamname).pipe(this.res);
 });
 
@@ -34,6 +36,7 @@ router.get('/getinfo/:teamname', function main(teamname) {
 /getscore/skiing
 */
 router.get('/getscore/:eventname', function main(eventname) {
+  fecount++;
   var ans = request.get("http://localhost:8080/getscore/"+eventname).pipe(this.res);
 });
 
@@ -220,7 +223,10 @@ ipc.on('message', function(data) {
 
 server.listen(8591);
 
-
+process.on('SIGINT', function() {
+  console.log("No of Client request Server ",fecount);
+  process.exit();
+});
 
 /*  ----- Currently This code is not needed 
 
