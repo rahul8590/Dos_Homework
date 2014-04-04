@@ -44,9 +44,9 @@ router.get('/getscore/:eventname', function main(eventname) {
 
 
 //Functions to Synchonise Clock Depending on who is the master
-var sync = function () {
-    csocket.emit('ntp:client_sync', { t0 : Date.now() });
-};
+//var sync = function () {
+//    csocket.emit('ntp:client_sync', { t0 : Date.now() });
+//};
 
 var onSync = function (data) {
 
@@ -84,10 +84,152 @@ var offsets = [] ;
 
 
 
+/*Redis Based Pub-Sub System to Initially Select the Master Bully 
+and synch server timestamps 
+*/
+var Ipc = require('./ipc/ipc.js');
+var serverId = getrandom();
+console.log("My server id is",serverId);
+var ipc = new Ipc(serverId);
+
+
+// Mark the process to be online in the cluster
+ipc.markProcessOnline( function() {
+  // Now that we are online we will run for president
+    ipc.runForPresident();
+});
+
+// 'won' event is emited if we win (daaah) the elections
+ipc.on('won', function() {
+  console.log("I am the Master Now . . .");
+  ipc.sendMessageToAll({servername:'ob1', 'port': 8590});
+});
+
+// 'lost' ... Well you get it
+ipc.on('lost', function() {
+  console.log("I've lost the Master Elections :( ");
+});
+
+// 'dead' event is emited when a dead node has been detected. The IPC library
+// is responsible for cleaning up the cluster while you clean up your application
+ipc.on('dead', function( data ) {
+  console.log("A Server has died, may it RIP ", data);
+});
+
+
+// A message has arrived for me...
+ipc.on('message', function(data) {
+  console.log("entering the message section");
+  if (data.servername != 'ob1') {
+    // Initiate Synch Mechanism with that server 
+    var io = require('socket.io-client'),
+        tsocket = io.connect("localhost", {
+        port: data.port
+    });
+
+    tsocket.on('connect',function () {
+        tsocket.on('ntp:server_sync', onSync);
+        tsocket.emit('ntp:client_sync', { t0 : Date.now() }); // We can add intervals later.
+    });
+  }
+
+});
+
+
+
+
+
+
+
+
+
+var io = require('socket.io').listen(server,{ log: false });
+
+  io.sockets.on('connection', function (socket) {
+    
+    console.log("Ob1 server received connection");
+
+    socket.on('ntp:client_sync', function (data) {
+    	console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
+    	socket.emit('ntp:server_sync', { t1     : Date.now(),
+                                     t0     : data.t0 ,
+                                     ord: _global_ });
+  	});
+
+    socket.on('error' , function (){
+      console.log("Unable to Connect to Front End Server");
+    });
+
+});
+
+
+server.listen(8590);
+
+
+
+
+
+
+/* -- This chunk of Server Events seems useless too ---- 
+
+
+// Master Bully Algorithm (ob3) is the first assumed master
+//Connecting to ob3 backend 
+var iob = require('socket.io-client'),
+bsocket = iob.connect("localhost", {
+    port: 8080
+});
+
+bsocket.on('connect',function () {
+    console.log("connected to ob3 time server");
+    var a = getrandom();
+    bsocket.emit('coordinate', {ob1 : a} );
+});
+
+
+
+socket.on('coordinate' , function (data) {
+       var a = getrandom();
+       console.log(" ob1: ", a);
+       console.log("ob2: ", data.ob2);  
+       var m = cmp(a,data.ob2,data.ob3);
+       console.log(" The master is ",m);
+       socket.emit('master',m);
+    });
+
+    socket.on('master', function (data) {
+        console.log(data, "is the master for now");
+        if(data != "ob1") {
+        //sync();
+        console.log("entering data!=ob1 constraints ");
+        channel.emit('start_time_client');
+        }
+      else {
+        console.log("stopping client sync, since I am master now");
+        a = getrandom();
+        socket.emit('coordinate' , {'ob1': a}) ;
+      }
+    });
+
+
+    socket.on('sync_with_master' , function () {
+        console.log("synch with master has been called in ob1.js");
+        channel.emit('start_time_client');
+    });
+
+
+
+*/
+
+
+
+
+/*  -- Currently This code is not needed anymore.
+
 // 8590 Server is acting as a client in order to sync with 8591 server
 var ioc = require('socket.io-client'),
 csocket = ioc.connect("localhost", {
-    port: 8591
+    port: 85910
 });
 
 csocket.on('connect',function () {
@@ -112,92 +254,4 @@ csocket.on('error' , function(err) {
 
 
 
-
-
-
-
-
-var io = require('socket.io').listen(server,{ log: false });
-
-
-/*
-Channel 1 : Coordinate 
-            - Fetch all the nodes count to synch with 
-            - Have the random id sent to to Ob1 master 
-
-Ob1 decides who is the master 
-
-Channel 2: Master 
-            - Broadcast to all the listeners on who is the master
-
-Repeat this cycle every 5 seconds 
 */
-
-
-io.sockets.on('connection', function (socket) {
-    
-    var funcid ;
-
-    socket.on('coordinate' , function (data) {
-       var a = getrandom();
-       console.log(" ob1: ", a);
-       console.log("ob2: ", data.ob2);  
-       var m = cmp(a,data.ob2,data.ob3);
-       console.log(" The master is ",m);
-       socket.emit('master',m);
-
-    /*funcid =   setInterval(function () {
-          a = getrandom();
-          console.log("after 5 seconds this is my pid", a);
-          socket.emit('coordinate' , {'ob1': a}) 
-        }, 5000);
-      */
-
-
-    });
-
-    socket.on('master', function (data) {
-      
-      console.log(data, "is the master for now");
-      if(data != "ob1") {
-        //sync();
-        console.log("entering data!=ob1 constraints ");
-        channel.emit('start_time_client');
-
-      }
-      else {
-        console.log("stopping client sync, since I am master now");
-        a = getrandom();
-        socket.emit('coordinate' , {'ob1': a}) ;
-      }
-    });
-
-
-    socket.on('sync_with_master' , function () {
-        console.log("synch with master has been called in ob1.js");
-        channel.emit('start_time_client');
-    });
-
-
-
-    console.log("time server connected and listening");
-
-    socket.on('ntp:client_sync', function (data) {
-    	console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
-    	socket.emit('ntp:server_sync', { t1     : Date.now(),
-                                     t0     : data.t0 ,
-                                     ord: _global_ });
-      a = getrandom();
-      socket.emit('coordinate' , {'ob1': a}) ;
-  	
-  	});
-
-
-    socket.on('error' , function (){
-      console.log("Unable to Connect to Front End Server");
-    });
-
-});
-
-
-server.listen(8590);

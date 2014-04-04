@@ -143,6 +143,149 @@ var server = http.createServer(function (req, res) {
 });
 
 
+function getrandom() {
+  var max = 100000 ;
+  var min = 0 
+  return Math.random() * (max - min) + min ;
+}
+
+
+
+var offsets = [] ;
+
+var onSync = function (data) {
+
+    var diff = Date.now() - data.t1 + ((Date.now() - data.t0)/2);
+    offsets.unshift(diff);
+    if (offsets.length > 10)
+      offsets.pop();
+    console.log("Order no ",data.ord,"The offset is ",offsets[0] ,"time in server was = ",data.t1 , "time in the slave = ", Date.now() );
+};
+
+
+
+
+
+
+
+/*Redis Based Pub-Sub System to Initially Select the Master Bully 
+and synch server timestamps 
+*/
+var Ipc = require('./ipc/ipc.js');
+var serverId = getrandom();
+console.log("My server id is",serverId);
+var ipc = new Ipc(serverId);
+
+
+// Mark the process to be online in the cluster
+ipc.markProcessOnline( function() {
+  // Now that we are online we will run for president
+    ipc.runForPresident();
+});
+
+// 'won' event is emited if we win (daaah) the elections
+ipc.on('won', function() {
+  console.log("I am the Master Now . . . \m/ ");
+  ipc.sendMessageToAll({servername:'ob3', 'port': 8080});
+});
+
+// 'lost' ... Well you get it
+ipc.on('lost', function() {
+  console.log("I've lost the Master Elections :( ");
+});
+
+// 'dead' event is emited when a dead node has been detected. The IPC library
+// is responsible for cleaning up the cluster while you clean up your application
+ipc.on('dead', function( data ) {
+  console.log("A Server has died, may it RIP ", data);
+});
+
+
+
+
+// A message has arrived for me...
+ipc.on('message', function(data) {
+  
+  //ioc.server.close();
+  if (data.servername != 'ob3') {
+    // Initiate Synch Mechanism with that server 
+    console.log("entering message section",data);
+     
+    var ioc = require('socket.io-client'); 
+    var tsocket = ioc.connect("localhost", {
+        port: data.port
+    },{'force new connection' : true });
+
+    tsocket.on('connect',function () {
+      setInterval(function(){   
+        if(!tsocket.disconnected){
+          tsocket.on('ntp:server_sync', onSync);
+          tsocket.emit('ntp:client_sync', { t0 : Date.now() }); // We can add intervals later.
+        }      
+      },1000);        
+        
+    });
+
+    tsocket.on('message',function (msg) {
+        tsocket.on('ntp:server_sync', onSync);
+        tsocket.emit('ntp:client_sync', { t0 : Date.now() }); // We can add intervals later.
+
+    });
+
+    tsocket.on('error',function() {
+      console.log("reconnect error => just disconnecting");
+      //tsocket.socket.reconnect();
+      tsocket.disconnect();
+    });    
+
+
+    tsocket.on('connect_error',function(err) {
+      console.log("connect error => just disconnecting");
+      console.log(err);
+      //tsocket.socket.reconnect();
+      tsocket.disconnect();
+    });
+
+
+    tsocket.on('disconnect',function() {
+      console.log("just disconnecting");
+      //tsocket.socket.reconnect();
+      tsocket.disconnect();
+    });
+
+  }
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var events = require("events");
 var channel = new events.EventEmitter();
 
@@ -177,6 +320,38 @@ io.sockets.on('connection', function (socket) {
       score.add(data.eventname,data.rome,data.gual);
       console.log(data);
       channel.emit(data.eventname);
+    });
+
+
+    //socket.on('ntp:server_sync', onSync);
+
+    socket.on('ntp:client_sync', function (data) {
+        console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
+        socket.emit('ntp:server_sync', { t1     : Date.now(),
+                                     t0     : data.t0 ,
+                                     ord: _global_ });
+    
+    
+    });
+
+    socket.on('error', function (data){
+      console.log("reconnecint error in the main server");
+      socket.disconnect();
+    });
+
+    socket.on('message', function (data){
+      console.log("message error in the main server");
+      socket.socket.reconnect();
+    });
+
+    socket.on('disconnect', function (data){
+      console.log("reconnecint error in the main server");
+      socket.disconnect();
+    });
+
+    socket.on('reconnect_error', function (data){
+      console.log("reconnecint error in the main server");
+      socket.disconnect();
     });
 
 });
