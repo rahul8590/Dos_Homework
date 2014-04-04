@@ -111,14 +111,19 @@ var http = require('http'),
 
 var router = new director.http.Router();
 
+var offsets = [] ;
+GLOBAL._timestamp_ ;
+
 
 /*Creating Router Routes (dispatch)
 /getinfo/rome
 /getinfo/gual
 */
 router.get('/getinfo/:teamname', function main(teamname) {
-  var ans = JSON.stringify(store.getByTeamName(teamname));
-  this.res.end(ans);
+  var ans = store.getByTeamName(teamname);
+  ans._timestamp_ = GLOBAL._timestamp_ ;
+  console.log(ans);
+  this.res.end(JSON.stringify(ans));
 });
 
 
@@ -128,8 +133,9 @@ router.get('/getinfo/:teamname', function main(teamname) {
 */
 
 router.get('/getscore/:eventname', function main(eventname) {
-  var ans = JSON.stringify(score.getByEventName(eventname));
-  this.res.end(ans);
+  var ans = score.getByEventName(eventname);
+  ans._timestamp_ = GLOBAL._timestamp_;
+  this.res.end(JSON.stringify(ans));
 });
 
 
@@ -151,7 +157,7 @@ function getrandom() {
 
 
 
-var offsets = [] ;
+
 
 var onSync = function (data) {
 
@@ -160,6 +166,7 @@ var onSync = function (data) {
     if (offsets.length > 10)
       offsets.pop();
     console.log("Order no ",data.ord,"The offset is ",offsets[0] ,"time in server was = ",data.t1 , "time in the slave = ", Date.now() );
+    _timestamp_ = offsets[0] + data.t1 ;
 };
 
 
