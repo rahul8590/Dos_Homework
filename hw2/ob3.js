@@ -19,12 +19,13 @@ var store = (function() {
     var byTeamName = {};
 
     return {
-        add: function(TeamName, Gold, Bronze, Silver) {
+        add: function(TeamName, Gold, Bronze, Silver,Update) {
             var d = {
                 TeamName: TeamName,
                 gold: Gold,
                 bronze: Bronze,
-                silver: Silver
+                silver: Silver,
+                update: Update
             };
             if (TeamName in byTeamName) { 
                 byTeamName[TeamName].pop();
@@ -41,10 +42,11 @@ var store = (function() {
             }
             return null;
         },
-        incrementMedalTally: function(TeamName,MedalType) {
+        incrementMedalTally: function(TeamName,MedalType,Update) {
           if(TeamName in byTeamName) {
             temp = byTeamName[TeamName].pop();
             temp[MedalType]++;
+            temp.update= Update;
             byTeamName[TeamName].push(temp);
           }
         }
@@ -61,11 +63,12 @@ var score = (function() {
     var byEventName = {};
 
     return {
-        add: function(EventName, Team1, Team2) {
+        add: function(EventName, Team1, Team2, Update) {
             var d = {
                 eventname: EventName,
                 rome: Team1,
                 gual: Team2,
+                update: Update
             };
             if (EventName in byEventName) { 
                 byEventName[EventName].pop();
@@ -87,11 +90,11 @@ var score = (function() {
 
 
 // Initializing the Teams and Then Individual Score Events 
-store.add("gual",0,0,0);
-store.add("rome",0,0,0);
+store.add("gual",0,0,0,Date.now());
+store.add("rome",0,0,0,Date.now());
 
-score.add("curling",0,0);
-score.add("skiing",0,0);
+score.add("curling",0,0,Date.now());
+score.add("skiing",0,0,Date.now());
 
 
 console.log (" Initializing Teams with the following Scores ");
@@ -121,8 +124,6 @@ GLOBAL._timestamp_ ;
 */
 router.get('/getinfo/:teamname', function main(teamname) {
   var ans = store.getByTeamName(teamname);
-  ans._timestamp_ = GLOBAL._timestamp_ ;
-  console.log(ans);
   this.res.end(JSON.stringify(ans));
 });
 
@@ -134,7 +135,6 @@ router.get('/getinfo/:teamname', function main(teamname) {
 
 router.get('/getscore/:eventname', function main(eventname) {
   var ans = score.getByEventName(eventname);
-  ans._timestamp_ = GLOBAL._timestamp_;
   this.res.end(JSON.stringify(ans));
 });
 
@@ -318,13 +318,13 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('inc_medal', function (data) {
             console.log("receiving data from cacophonix server",data);
-            store.incrementMedalTally(data.teamname,data.medal);  
+            store.incrementMedalTally(data.teamname,data.medal,Date.now());  
             console.log("data is updated");
     });
 
     socket.on('set_score', function (data) {
       console.log("New Score received from cacophonix server ", data );
-      score.add(data.eventname,data.rome,data.gual);
+      score.add(data.eventname,data.rome,data.gual,Date.now());
       console.log(data);
       channel.emit(data.eventname);
     });

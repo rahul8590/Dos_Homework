@@ -101,7 +101,7 @@ ipc.markProcessOnline( function() {
 
 // 'won' event is emited if we win (daaah) the elections
 ipc.on('won', function() {
-  console.log("I am the Master Now . . .");
+  console.log("I am the Master Now . . . \m/ ");
   ipc.sendMessageToAll({servername:'ob1', 'port': 8590});
 });
 
@@ -119,17 +119,47 @@ ipc.on('dead', function( data ) {
 
 // A message has arrived for me...
 ipc.on('message', function(data) {
-  console.log("entering the message section");
+  //ioc.server.close();
   if (data.servername != 'ob1') {
+    console.log("entering message section",data);
     // Initiate Synch Mechanism with that server 
-    var io = require('socket.io-client'),
-        tsocket = io.connect("localhost", {
+      var ioc = require('socket.io-client');    
+      var tsocket = ioc.connect("localhost", {
         port: data.port
-    });
+    },{'force new connection' : true });
 
     tsocket.on('connect',function () {
+      setInterval(function(){   
+        if(!tsocket.disconnected){
+          tsocket.on('ntp:server_sync', onSync);
+          tsocket.emit('ntp:client_sync', { t0 : Date.now() }); // We can add intervals later.
+        }      
+      },1000);         
+    });
+
+    tsocket.on('message',function (msg) {
         tsocket.on('ntp:server_sync', onSync);
         tsocket.emit('ntp:client_sync', { t0 : Date.now() }); // We can add intervals later.
+
+    });
+
+    tsocket.on('error',function() {
+      console.log("reconnect error => just disconnecting");
+      //tsocket.socket.reconnect();
+      tsocket.disconnect();
+    });
+
+    tsocket.on('connect_error',function(err) {
+      console.log("connect error => just disconnecting");
+      console.log(err);
+      //tsocket.socket.reconnect();
+      tsocket.disconnect();
+    });
+
+    tsocket.on('disconnect',function() {
+      console.log("just disconnecting");
+      //tsocket.socket.reconnect();
+      tsocket.disconnect();
     });
   }
 
@@ -138,29 +168,35 @@ ipc.on('message', function(data) {
 
 
 
+var ios = require('socket.io').listen(server,{ log: false });
 
-
-
-
-
-var io = require('socket.io').listen(server,{ log: false });
-
-  io.sockets.on('connection', function (socket) {
-    
-    console.log("Ob1 server received connection");
-
-    socket.on('ntp:client_sync', function (data) {
-    	console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
-    	socket.emit('ntp:server_sync', { t1     : Date.now(),
+ios.sockets.on('connection', function (socket) {
+  
+  console.log("time server connected and listening");
+  
+  socket.on('ntp:client_sync', function (data) {
+      console.log("Current server timestamp is ", Date.now() , "order no is " , ++_global_);
+      socket.emit('ntp:server_sync', { t1     : Date.now(),
                                      t0     : data.t0 ,
                                      ord: _global_ });
-  	});
-
-    socket.on('error' , function (){
-      console.log("Unable to Connect to Front End Server");
+      //socket.disconnect();
+    });
+    
+    socket.on('error', function (data){
+      console.log("reconnecint error in the main server");
+      socket.disconnect();
     });
 
+    socket.on('message', function (data){
+      console.log("message error in the main server");
+      socket.socket.reconnect();
+    });
+  /*socket.on('error',function() {
+      console.log("unable to connect for some reason, retrying");
+      socket.socket.reconnect();
+    });*/
 });
+
 
 
 server.listen(8590);
