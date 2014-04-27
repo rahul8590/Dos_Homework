@@ -12,17 +12,8 @@ var rclient = redis.createClient();
 
 
 
-function getscore (eventname){
 
-  rclient.hgetall(eventname,function(err,obj){
-        console.log("the response from redis is ",obj)
-        cache.put(eventname,obj);
-        console.log("inserting to cache");  
-        channel.emit('response',obj);
-    });
-
-}
-
+  
 
 /*Creating Router Routes (dispatch)
 /getinfo/rome
@@ -51,15 +42,22 @@ router.get('/getinfo/:teamname', function main(teamname) {
 
 router.get('/getscore/:eventname', function main(eventname) {
   
+  var reply = this; 
   console.log("requested eventname is ", eventname)
   var result = cache.get(eventname)
   if (result == undefined){
-    result = getscore(eventname);
+    rclient.hgetall(eventname,function(err,obj){
+        console.log("the response from redis is ",obj)
+        console.log("inserting to cache");  
+        cache.put(eventname,obj);
+        reply.res.end(JSON.stringify(obj));
+    });
   }
   else {
     console.log("getting value from cache");
+    this.res.end(JSON.stringify(result));
   }
-  this.res.end(JSON.stringify(result));
+  
 });
 
 
