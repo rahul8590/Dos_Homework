@@ -1,7 +1,64 @@
+var http = require('http'),
+    director = require('director'),
+    cache = require('memory-cache'),
+    events = require("events"),
+    redis = require('redis');
 
-/* If you already have a server running and just want to use the balancer then you don't need the code below, just set the listenport above to be whatever port your server is running on */
-var http = require("http");
-var s2 = http.createServer(function(q,s){
-  s.end("served from port 1080, server 2");
+
+var router = new director.http.Router();
+var channel = new events.EventEmitter();
+var rclient = redis.createClient();
+
+
+
+/*Creating Router Routes (dispatch)
+/getinfo/rome
+/getinfo/gual
+*/
+router.get('/getinfo/:teamname', function main(teamname) {
+  var res = cache.get(teamname)
+  if (res == undefined){
+    rclient.hgetall(teamname,function(err,obj){
+        res = obj;
+        cache.put(teamname,res);
+        console.log("inserting to cache");  
+    })
+  }
+  else {
+    console.log("getting value from cache");
+  }
+  this.res.end(res);
 });
-s2.listen(1081);
+
+
+/*Creating Router Routes (dispatch)
+/getscore/curling
+/getscore/skiing
+*/
+
+router.get('/getscore/:eventname', function main(eventname) {
+  var res = cache.get(eventname)
+  if (res == undefined){
+    rclient.hgetall(eventname,function(err,obj){
+        res = obj;
+        cache.put(eventname,res);
+        console.log("inserting to cache");  
+    });
+  }
+  else {
+    console.log("getting value from cache");
+  }
+  this.res.end(res);
+});
+
+
+var server = http.createServer(function (req, res) { 
+  router.dispatch(req,res,function(err) {   
+    if(err) {
+      console.log(" Unwarrented Url " ) ;
+      this.res.end(" Illegal Url Calls \n");
+    }
+  });
+});
+
+server.listen(1081);
