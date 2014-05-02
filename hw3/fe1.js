@@ -1,6 +1,72 @@
-/* If you already have a server running and just want to use the balancer then you don't need the code below, just set the listenport above to be whatever port your server is running on */
-var http = require("http");
-var s2 = http.createServer(function(q,s){
-  s.end("served from port 1080, server 1");
+var http = require('http'),
+    director = require('director'),
+    cache = require('memory-cache'),
+    events = require("events"),
+    redis = require('redis');
+
+
+var router = new director.http.Router();
+var channel = new events.EventEmitter();
+var rclient = redis.createClient();
+
+
+
+/*Creating Router Routes (dispatch)
+/getinfo/rome
+/getinfo/gual
+*/
+router.get('/getinfo/:teamname', function main(teamname) {
+  var reply = this;
+  var result = cache.get(teamname)
+  console.log("requested eventname is ", teamname)
+  if (result == undefined){
+    rclient.hgetall(teamname,function(err,obj){
+        console.log("the response from redis is ",obj)
+        console.log("inserting to cache");  
+        cache.put(teamname,obj);
+        reply.res.end(JSON.stringify(obj));
+    });
+  }
+  else {
+    console.log("getting value from cache");
+    this.res.end(JSON.stringify(result));
+  }  
 });
-s2.listen(1080);
+
+
+/*Creating Router Routes (dispatch)
+/getscore/curling
+/getscore/skiing
+*/
+
+router.get('/getscore/:eventname', function main(eventname) {
+  
+  var reply = this; 
+  console.log("requested eventname is ", eventname)
+  var result = cache.get(eventname)
+  if (result == undefined){
+    rclient.hgetall(eventname,function(err,obj){
+        console.log("the response from redis is ",obj)
+        console.log("inserting to cache");  
+        cache.put(eventname,obj);
+        reply.res.end(JSON.stringify(obj));
+    });
+  }
+  else {
+    console.log("getting value from cache");
+    this.res.end(JSON.stringify(result));
+  }
+  
+});
+
+
+var server = http.createServer(function (req, res) { 
+  router.dispatch(req,res,function(err) {   
+    if(err) {
+      console.log(" Unwarrented Url " ) ;
+      this.res.end(" Illegal Url Calls \n");
+    }
+  });
+});
+
+server.listen(1080);

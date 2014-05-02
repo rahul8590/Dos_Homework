@@ -11,6 +11,14 @@ var rclient = redis.createClient();
 
 
 
+
+
+// Ping url for loadbalancer to check if alive or not
+router.get("/ping",function main(){
+  this.res.end("I am alive")
+});
+
+
 /*Creating Router Routes (dispatch)
 /getinfo/rome
 /getinfo/gual
@@ -58,6 +66,9 @@ router.get('/getscore/:eventname', function main(eventname) {
   }
   
 });
+
+
+
 
 
 var server = http.createServer(function (req, res) { 

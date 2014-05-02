@@ -14,7 +14,6 @@ var servers =
 
 var pool = new Pool(http, servers)
 
-
 var req_res = function (error, response, body) {
     if (error) {
       console.error(error.message)
@@ -28,9 +27,6 @@ var req_res = function (error, response, body) {
       channel.emit('response',body);
     }
   }
-
-
-
 
 
 var s2 = http.createServer(function(q,s){
