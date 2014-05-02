@@ -11,27 +11,26 @@ var rclient = redis.createClient();
 
 
 
-
-
-  
-
 /*Creating Router Routes (dispatch)
 /getinfo/rome
 /getinfo/gual
 */
 router.get('/getinfo/:teamname', function main(teamname) {
-  var res = cache.get(teamname)
-  if (res == undefined){
+  var reply = this;
+  var result = cache.get(teamname)
+  console.log("requested eventname is ", teamname)
+  if (result == undefined){
     rclient.hgetall(teamname,function(err,obj){
-        res = obj;
-        cache.put(teamname,res);
+        console.log("the response from redis is ",obj)
         console.log("inserting to cache");  
-    })
+        cache.put(teamname,obj);
+        reply.res.end(JSON.stringify(obj));
+    });
   }
   else {
     console.log("getting value from cache");
-  }
-  this.res.end(res);
+    this.res.end(JSON.stringify(result));
+  }  
 });
 
 

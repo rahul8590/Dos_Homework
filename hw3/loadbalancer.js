@@ -30,15 +30,16 @@ var req_res = function (error, response, body) {
   }
 
 
-var req_obj  = { method: "GET"
-                , path: "/team/info"
-              }
 
 
 
 var s2 = http.createServer(function(q,s){
+        console.log(" The loadbalancer is listening in 8590")
+        var req_obj  = { method: "GET"
+                , path: q.url
+              }
+        console.log("query" , q.url)
         pool.request(req_obj,req_res )//, postData incase of POST module we can send data
-        
         channel.on('response', function (data) {
           s.end(data)  
         })        
