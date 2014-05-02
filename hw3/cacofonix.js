@@ -21,7 +21,8 @@ var ops = stdio.getopt({
 });
 
 var redis = require('redis'),
-	rclient = redis.createClient();		
+	rclient = redis.createClient(),
+	sclient = redis.createClient();		
 
 console.log("Initializing Client ");
 console.log("Updating Event for " , ops.action_type);
@@ -31,16 +32,17 @@ var channel = new events.EventEmitter();
 channel.emit(ops.action_type);
 
 
-
 channel.on('inc_medal',function () {
 	//socket.emit("inc_medal", { teamname : ops.teamname , medal: ops.medal_type });
 	rclient.hmset(teamname, ops.teamname, medal, ops.medal_type);
+	sclient.publish("notif" , "inc_medal updated")
 });
 
 channel.on('set_score',function () {
 	console.log("setting score for a given teamname " , process.hrtime()[0]);
     //socket.emit("set_score", { eventname: ops.event_name , rome : ops.score[0] , gual: ops.score[1]});
     rclient.hmset(eventname, ops.event_name, rome, ops.score[0], gual, ops.score[1]); 
+    sclient.publish("notif" , "set_score updated");
 });
 
 channel.on ("end" , function () {

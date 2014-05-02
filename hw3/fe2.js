@@ -7,7 +7,8 @@ var http = require('http'),
 
 var router = new director.http.Router();
 var channel = new events.EventEmitter();
-var rclient = redis.createClient();
+var rclient = redis.createClient(),
+    sclient = redis.createClient();
 
 
 
@@ -67,6 +68,28 @@ router.get('/getscore/:eventname', function main(eventname) {
   
 });
 
+
+// Subscribing to notif channel which recives notifications on updates
+
+sclient.subscribe("notif");
+sclient.on("message",function (channel,count){
+  //Refresh the cache values. 
+  console.log("the channel values are ",channel)
+   var keys = ['curling','skiing','rome','gual']
+   for (var i = 0 ; i< keys.length ; i++) {
+      rclient.hgetall(keys[i],function(err,obj){  
+        cache.put(keys[i],obj);
+      }); 
+   }
+   console.log("Updating cache values based on Cacophonix Notifications");
+});
+
+
+//Purgin Caches Every 5 secs 
+setInterval(function () {
+  console.log("Cache Refresh Happening Every 10 Seconds");
+  cache.clear();
+},10000);
 
 
 

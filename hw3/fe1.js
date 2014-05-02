@@ -68,6 +68,13 @@ router.get('/getscore/:eventname', function main(eventname) {
 });
 
 
+// Subscribing to notif channel which recives notifications on updates
+rclient.on("notif",function (channel,count){
+    //Refresh the cache values. 
+});
+
+
+
 var server = http.createServer(function (req, res) { 
   router.dispatch(req,res,function(err) {   
     if(err) {
