@@ -13,7 +13,6 @@ var rclient = redis.createClient(),
 
 
 
-
 // Ping url for loadbalancer to check if alive or not
 router.get("/ping",function main(){
   this.res.end("I am alive")
@@ -92,12 +91,10 @@ setInterval(function () {
 },10000);
 
 
-
-
 var server = http.createServer(function (req, res) { 
   router.dispatch(req,res,function(err) {   
     if(err) {
-      console.log(" Unwarrented Url " ) ;
+      console.log(" Unwarrented Url ") ;
       this.res.end(" Illegal Url Calls \n");
     }
   });

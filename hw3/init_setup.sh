@@ -14,9 +14,6 @@ redis-cli hmset skiing  rome 6 gual 15
 #hget rome gold 
 
 
-
-
-
 : '
 Javascript based commands 
 --------------------------
