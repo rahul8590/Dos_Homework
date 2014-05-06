@@ -99,6 +99,7 @@ var server = http.createServer(function (req, res) {
   router.dispatch(req,res,function(err) {   
     if(err) {
       console.log(" Unwarrented Url ") ;
+      this.res.writeHead(404,{'Content-Type': 'text/plain'});
       this.res.end(" Illegal Url Calls \n");
     }
   });
