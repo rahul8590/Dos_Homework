@@ -2,15 +2,19 @@ var http = require('http'),
     director = require('director'),
     cache = require('memory-cache'),
     events = require("events"),
-    redis = require('redis');
+    redis = require('redis'),
+    stdio = require('stdio');
+
+var ops = stdio.getopt({
+  'port' : {key: 'port', args: 1, description: 'Port in which server needs to run'}
+});
+
 
 
 var router = new director.http.Router();
 var channel = new events.EventEmitter();
 var rclient = redis.createClient(),
     sclient = redis.createClient();
-
-
 
 
 // Ping url for loadbalancer to check if alive or not
@@ -100,4 +104,4 @@ var server = http.createServer(function (req, res) {
   });
 });
 
-server.listen(1080);
+server.listen(ops.port);

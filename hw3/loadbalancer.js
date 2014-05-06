@@ -8,6 +8,8 @@ var _Pool_Res = ' '
 var servers =
   ["localhost:1080"
   ,"localhost:1081"
+  ,"localhost:1082"
+  ,"localhost:1083"
   ]
 
 //var postData = '{"name":"Danny Coates"}'
