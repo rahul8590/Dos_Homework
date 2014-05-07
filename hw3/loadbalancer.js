@@ -14,7 +14,6 @@ var servers =
   ,"localhost:1083"
   ]
 
-//var postData = '{"name":"Danny Coates"}'
 
 var pool = new Pool(http, servers
           ,{
@@ -85,8 +84,6 @@ function raffle_winner() {
   console.log("---------------------------------------------------------------")
 }
 
-
-
 process.on('SIGINT', function() {
     console.log(" \n Caught interrupt signal. Cleaning up all the connections .. Goodbye   \n");
     raffle_winner();
@@ -96,13 +93,6 @@ process.on('SIGINT', function() {
     server.close();
     process.exit();
 });
-
-
-
-
-
-
-
 
 
 server.listen(8590);

@@ -15,8 +15,8 @@ var ops = stdio.getopt({
     'event_name': {key: 'e', args: 1, description: 'Name of event'},
     'teamname': {key: 't', args:1 ,description: 'Name of the team'},
     'medal_type': {key: 'm',args: 1, description: 'Type of medal example gold,silver,bronze'},
+    'medal_count':{key: 'c',args: 1, description: 'Number of Medal'},
     'score' : {key: 's', args: 2 , description: 'enter scores of 2 teams (rome , gual)'},
-    'interval' : {key : 'i' , args: 1 , description: 'No of times you need to send update'},
     'host': {key: 'h', args: 1, mandatory: true, description: 'localhost if same server' }
 });
 
@@ -27,26 +27,35 @@ var redis = require('redis'),
 console.log("Initializing Client ");
 console.log("Updating Event for " , ops.action_type);
 
-var channel = new events.EventEmitter();
-
-channel.emit(ops.action_type);
 
 
-channel.on('inc_medal',function () {
-	//socket.emit("inc_medal", { teamname : ops.teamname , medal: ops.medal_type });
-	rclient.hmset(teamname, ops.teamname, medal, ops.medal_type);
-	sclient.publish("notif" , "inc_medal updated")
+switch (ops.action_type){
+    case 'set_score':
+        console.log("setting score for a given teamname ",ops);
+        rclient.hmset(ops.event_name,"rome",ops.score[0].toString(),"gual",ops.score[1].toString()); 
+        sclient.publish("notif" ,"set_score updated");
+        break;
+
+    case 'inc_medal':
+        console.log("updating medal ",ops , ops.medal_type)
+        rclient.hmset(ops.teamname,ops.medal_type, ops.medal_count);
+        sclient.publish("notif" , "inc_medal updated")
+        break;
+
+    default:
+      console.log(ops.action_type , "is not supported in here")
+}
+
+
+console.log("-------Press Ctrl C to Exit ----------------------")
+process.on('SIGINT', function() {
+    console.log(" \n Caught interrupt signal. Cleaning up all the connections .. Goodbye   \n");
+    console.log("                         ---------- __o");
+    console.log("                       --------  _ \<,_");
+    console.log("                     -------    (*)/ (*)");
+    process.exit();
 });
 
-channel.on('set_score',function () {
-	console.log("setting score for a given teamname " , process.hrtime()[0]);
-    //socket.emit("set_score", { eventname: ops.event_name , rome : ops.score[0] , gual: ops.score[1]});
-    rclient.hmset(eventname, ops.event_name, rome, ops.score[0], gual, ops.score[1]); 
-    sclient.publish("notif" , "set_score updated");
-});
 
-channel.on ("end" , function () {
-	process.exit();
-})
 
 
